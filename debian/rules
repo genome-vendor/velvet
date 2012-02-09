@@ -37,10 +37,16 @@ PKG=$(shell dh_listpackages)
 
 override_dh_auto_install:
 	dh_auto_install
-	for FILE in ./debian/$(PKG)/usr/bin/v*; do \
-	  mv $$FILE ./debian/$(PKG)/usr/bin/`basename $$FILE`$(VERSION); \
+	if [ -e ./debian/$(PKG)/usr/share/man/man1 ]; then \
+		mkdir -p /usr/share/man/man1/ \
+		mv ./debian/$(PKG)/usr/share/man/man1/* /usr/share/man/man1/ \
+	fi
+	mkdir /tmp/sandbox-$(PKG)
+	mv ./debian/$(PKG)/usr/* /tmp/sandbox-$(PKG)
+	mkdir -p ./debian/$(PKG)/usr/lib/$(PKG)
+	mv /tmp/sandbox-$(PKG)/* ./debian/$(PKG)/usr/lib/$(PKG)/
+	rmdir /tmp/sandbox-$(PKG)
+	mkdir -p ./debian/$(PKG)/usr/bin/
+	for FILE in versioned-bin-wrappers/*; do \
+	  cat $$FILE | sed 's/VERSION/$(VERSION)/g' >  ./debian/$(PKG)/usr/bin/`basename $$FILE`$(VERSION); \
 	done
-	for FILE in ./debian/$(PKG)/usr/bin/*; do \
-	  mv $$FILE ./debian/$(PKG)/usr/share/velvet$(VERSION)/`basename $$FILE`; \
-	done
-
